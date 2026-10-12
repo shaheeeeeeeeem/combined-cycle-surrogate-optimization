@@ -244,3 +244,23 @@ def test_hrsg_limit_only_moves_its_own_margin(baseline):
     assert relaxed["margins"]["m_hrsg_inlet"] - baseline["margins"]["m_hrsg_inlet"] == pytest.approx(50.0)
     assert relaxed["feasible"] and not tight["feasible"]
     assert tight["reason"] == "m_hrsg_inlet"
+
+
+def test_lhs_is_stratified_in_every_dimension():
+    from src.doe import lhs
+
+    U = lhs(500, seed=42)
+    for column in U.T:
+        assert np.array_equal(np.sort(np.floor(column * 500).astype(int)), np.arange(500))
+
+
+def test_doe_table_complete():
+    import pandas as pd
+
+    from src.doe import ROOT, UNIT_COLUMNS
+
+    df = pd.read_csv(ROOT / "results" / "doe.csv")
+    assert len(df) == 500
+    assert df[UNIT_COLUMNS].min().min() >= 0.0 and df[UNIT_COLUMNS].max().max() <= 1.0
+    assert set(MARGIN_KEYS) <= set(df.columns)
+    assert df["feasible"].any() and (~df["feasible"]).any()
