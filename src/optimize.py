@@ -175,7 +175,7 @@ def plot_convergence(runs, direct_run=None, fig_name="phase7_ga_convergence.png"
     plt.close(fig)
 
 
-def main():
+def main(direct_reference=True):
     import warnings
 
     from src.combined_cycle import plot_TQ, plot_Ts
@@ -198,17 +198,19 @@ def main():
     print("\nFinal optimum:")
     print(table.to_string(index=False))
 
-    t0 = time.perf_counter()
-    direct_best, direct_run = direct_optimisation()
-    t_dir = time.perf_counter() - t0
-    direct_table, _, direct_active = optimum_table(direct_best["x"])
-    comparison = pd.DataFrame({"Quantity": table["Quantity"], "surrogate GA": table["Value"],
-                               "direct GA": direct_table["Value"]})
-    comparison.to_csv(RESULTS_DIR / "optimum_vs_direct_ga.csv", index=False)
-    print(f"\nDirect-model GA reference: {t_dir:.0f} s, {60 * 80} direct-model calls")
-    print(comparison.to_string(index=False))
-
-    plot_convergence(opt["runs"], direct_run)
+    if direct_reference:
+        t0 = time.perf_counter()
+        direct_best, direct_run = direct_optimisation()
+        t_dir = time.perf_counter() - t0
+        direct_table, _, _ = optimum_table(direct_best["x"])
+        comparison = pd.DataFrame({"Quantity": table["Quantity"], "surrogate GA": table["Value"],
+                                   "direct GA": direct_table["Value"]})
+        comparison.to_csv(RESULTS_DIR / "optimum_vs_direct_ga.csv", index=False)
+        print(f"\nDirect-model GA reference: {t_dir:.0f} s, {60 * 80} direct-model calls")
+        print(comparison.to_string(index=False))
+        plot_convergence(opt["runs"], direct_run)
+    else:
+        print("\nDirect-model reference GA skipped: optimum_vs_direct_ga.csv and the convergence figure are kept.")
     plot_TQ(result, fig_name="phase7_optimum_TQ.png", title="HRSG T–Q diagram, optimum")
     plot_Ts(result, fig_name="phase7_optimum_Ts.png", title_suffix="optimum")
 

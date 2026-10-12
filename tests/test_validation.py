@@ -370,3 +370,12 @@ def test_pareto_verification_gap(limit_C):
     assert len(verified) == 5
     assert (verified["gap_eta_pp"] <= 0.2).all()
     assert front["knee"].sum() == 1
+
+
+def test_combined_validation_table_has_no_failures():
+    from src.validation import validation_table
+
+    table = validation_table(csv_name=None)
+    assert set(table["Check"].str.split(" ").str[0]) == {"Check-1", "Check-2", "Check-3", "Cengel"}
+    assert (table["Pass/Fail"] != "Fail").all()
+    assert (table["Pass/Fail"] == "Pass").sum() >= 30

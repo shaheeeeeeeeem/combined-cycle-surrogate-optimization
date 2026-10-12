@@ -213,6 +213,28 @@ def check_textbook_cengel(csv_name="validation_textbook_cengel.csv"):
     return table
 
 
+def validation_table(csv_name="validation_table.csv"):
+    parts = [
+        ("Check-1 (gas turbine, air-standard)", check1(csv_name=None), f"{TOL_GAS_PCT} %"),
+        ("Check-2 (Rankine vs steam tables)", check2(csv_name=None), f"{TOL_STEAM_PCT} %"),
+        ("Check-3 (first-law energy balance)", check3(csv_name=None), f"{100 * TOL_ENERGY_REL:g} % (closure)"),
+        ("Cengel & Boles Ex. 10-8 (combined cycle)", check_textbook_cengel(csv_name=None).drop(columns="Note"),
+         f"{TOL_TEXTBOOK_PCT} %"),
+    ]
+    frames = []
+    for name, table, tol in parts:
+        table = table.copy()
+        table.insert(0, "Check", name)
+        table.insert(5, "Tolerance", tol)
+        frames.append(table)
+    combined = pd.concat(frames, ignore_index=True)
+    combined = combined[["Check", "Quantity", "Hand value", "Code output", "% difference", "Tolerance", "Pass/Fail"]]
+    if csv_name:
+        RESULTS_DIR.mkdir(exist_ok=True)
+        combined.to_csv(RESULTS_DIR / csv_name, index=False)
+    return combined
+
+
 def a6_extrapolation_study(T_min=300.0, T_max=1600.0, fig_name="phase1_A6_vs_A71.png"):
     table = load_table_a71()
     table = table[(table["T_K"] >= T_min) & (table["T_K"] <= T_max)].reset_index(drop=True)
@@ -268,3 +290,7 @@ if __name__ == "__main__":
     print(check3().to_string(index=False))
     print("\nTextbook combined cycle: Cengel & Boles Example 10-8")
     print(check_textbook_cengel().to_string(index=False))
+    combined = validation_table()
+    print(f"\nCombined validation table: {len(combined)} rows, "
+          f"{(combined['Pass/Fail'] == 'Pass').sum()} pass, {(combined['Pass/Fail'] == 'Fail').sum()} fail "
+          f"(Check-3 component rows carry no pass/fail)")

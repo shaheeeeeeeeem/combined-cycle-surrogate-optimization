@@ -1,0 +1,43 @@
+Check,Quantity,Hand value,Code output,% difference,Tolerance,Pass/Fail
+"Check-1 (gas turbine, air-standard)",T2 [K],694.7,692.3684549408551,-0.33561898073195634,0.5 %,Pass
+"Check-1 (gas turbine, air-standard)",T4 [K],787.7,785.1181296068996,-0.32777331383780833,0.5 %,Pass
+"Check-1 (gas turbine, air-standard)",w_c [kJ/kg],407.4,408.3311396994294,0.22855662725317202,0.5 %,Pass
+"Check-1 (gas turbine, air-standard)",w_t [kJ/kg],706.5,706.3956357359439,-0.014772011897541428,0.5 %,Pass
+"Check-1 (gas turbine, air-standard)",w_net [kJ/kg],299.1,298.0644960365145,-0.34620660765145306,0.5 %,Pass
+"Check-1 (gas turbine, air-standard)",q_h [kJ/kg],807.4,807.8673160575951,0.057879125290450674,0.5 %,Pass
+"Check-1 (gas turbine, air-standard)",eta_th [%],37.05,36.89522897040492,-0.41773557245634296,0.5 %,Pass
+"Check-1 (gas turbine, air-standard)",h1 [kJ/kg] (reference-state shift),300.47,300.4935795474488,0.007847554647311173,0.5 %,Pass
+"Check-1 (gas turbine, air-standard)",h3 [kJ/kg] (reference-state shift),1515.27,1516.6920353044734,0.09384699126052856,0.5 %,Pass
+Check-2 (Rankine vs steam tables),h5 [kJ/kg],3344.0,3344.84297038717,0.02520844459241106,0.1 %,Pass
+Check-2 (Rankine vs steam tables),s5 [kJ/kg·K],7.0833,7.085610920208445,0.03262490941291535,0.1 %,Pass
+Check-2 (Rankine vs steam tables),h6s [kJ/kg],2208.4,2209.0347954615286,0.028744587100547156,0.1 %,Pass
+Check-2 (Rankine vs steam tables),x6s [-],0.848,0.8482529921325527,0.029833977895365387,0.1 %,Pass
+Check-2 (Rankine vs steam tables),h6 [kJ/kg],2378.8,2379.406021700375,0.025475941667001855,0.1 %,Pass
+Check-2 (Rankine vs steam tables),x6 [-],0.919,0.9190850900648898,0.009258984209985865,0.1 %,Pass
+Check-2 (Rankine vs steam tables),h7 [kJ/kg],168.77,168.74647069039258,-0.01394164223939434,0.1 %,Pass
+Check-2 (Rankine vs steam tables),s7 [kJ/kg·K],0.5763,0.5762745040547202,-0.0044240751830271355,0.1 %,Pass
+Check-2 (Rankine vs steam tables),h8 [kJ/kg],172.54,172.51459534156336,-0.014723923980890154,0.1 %,Pass
+Check-2 (Rankine vs steam tables),w_st [kJ/kg],965.2,965.4369486867953,0.024549180148699192,0.1 %,Pass
+Check-2 (Rankine vs steam tables),w_pump [kJ/kg],3.77,3.768124651170772,-0.04974400077527311,0.1 %,Pass
+Check-2 (Rankine vs steam tables),w_net [kJ/kg],961.4,961.6688240356245,0.02796172619352626,0.1 %,Pass
+Check-2 (Rankine vs steam tables),q_H [kJ/kg],3171.5,3172.3283750456067,0.026119345596930875,0.1 %,Pass
+Check-2 (Rankine vs steam tables),eta_Rankine [%],30.3,30.31429002118354,0.047161786084293916,0.1 %,Pass
+Check-3 (first-law energy balance),Fuel LHV input m_f*LHV [MW],,91.04179805188414,,0.0001 % (closure),
+Check-3 (first-law energy balance),Combustor loss (1 - eta_f)*m_f*LHV [MW],,1.8208359610376805,,0.0001 % (closure),
+Check-3 (first-law energy balance),W_GT_net [MW],,32.52776460995652,,0.0001 % (closure),
+Check-3 (first-law energy balance),W_ST_net [MW],,13.592661256461001,,0.0001 % (closure),
+Check-3 (first-law energy balance),Q_stack = m_gas*h(T4c) - m_air*h_air(T1) [MW],,11.854076238190581,,0.0001 % (closure),
+Check-3 (first-law energy balance),Q_cond [MW],,31.246459986235056,,0.0001 % (closure),
+Check-3 (first-law energy balance),Residual: eta_f*m_f*LHV - sum of outputs [MW],0.0,3.2931566238403317e-12,,0.0001 % (closure),
+Check-3 (first-law energy balance),Closure: eta_f*m_f*LHV vs W_GT + W_ST + Q_stack + Q_cond [MW],89.22096209084646,89.22096209084317,-3.67930065119579e-12,0.0001 % (closure),Pass
+Cengel & Boles Ex. 10-8 (combined cycle),T4_gas [K],853.0,852.2156904777089,-0.09194718901419649,1.0 %,Pass
+Cengel & Boles Ex. 10-8 (combined cycle),q_in_gas [kJ/kg],790.58,795.4887816684166,0.6209089109788395,1.0 %,Pass
+Cengel & Boles Ex. 10-8 (combined cycle),w_net_gas [kJ/kg],210.41,210.95066720264393,0.25695889104316855,1.0 %,Pass
+Cengel & Boles Ex. 10-8 (combined cycle),eta_gas [%],26.6,26.518371102632905,-0.30687555401164074,1.0 %,Pass
+Cengel & Boles Ex. 10-8 (combined cycle),h_pump_exit [kJ/kg],144.78,144.77015581200067,-0.006799411520468647,1.0 %,Pass
+Cengel & Boles Ex. 10-8 (combined cycle),h_turbine_inlet [kJ/kg],3411.4,3411.39382500373,-0.00018101061939810483,1.0 %,Pass
+Cengel & Boles Ex. 10-8 (combined cycle),w_net_steam [kJ/kg],1331.4,1331.401751529042,0.0001315554335240835,1.0 %,Pass
+Cengel & Boles Ex. 10-8 (combined cycle),eta_steam [%],40.8,40.75773294872608,-0.10359571390666028,1.0 %,Pass
+Cengel & Boles Ex. 10-8 (combined cycle),y [kg steam/kg gas],0.131,0.13213645974703078,0.8675265244509747,1.0 %,Pass
+Cengel & Boles Ex. 10-8 (combined cycle),w_net_cc [kJ/kg gas],384.8,386.8773811506875,0.5398599663948732,1.0 %,Pass
+Cengel & Boles Ex. 10-8 (combined cycle),eta_cc [%],48.7,48.63392043559321,-0.13568699056836087,1.0 %,Pass
