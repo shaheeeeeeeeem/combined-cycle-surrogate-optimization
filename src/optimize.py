@@ -28,11 +28,16 @@ MAX_REFINEMENTS = 3
 REFINE_POINTS = 50
 REFINE_HALF_WIDTH = 0.10
 ACTIVE_FRACTION = 0.02
+# The true pinch margin is identically 0 by construction unless the economizer cold end
+# crosses; the surrogate reproduces that zero only to ~1e-4 K, which would randomly mark
+# feasible designs infeasible. A predicted m_pinch >= -0.05 K counts as satisfied: ~20x the
+# ANN test RMSE, and far smaller than real cold-end crosses (-0.7 to -47 K in the DOE).
+PINCH_NOISE_BAND = 0.05
 
 
 def surrogate_margins(pred, T_hrsg_max):
     return {"m_quality": pred["m_quality"], "m_hrsg_inlet": T_hrsg_max - pred["T4"], "m_stack": pred["m_stack"],
-            "m_pinch": pred["m_pinch"], "m_approach": pred["m_approach"]}
+            "m_pinch": pred["m_pinch"] + PINCH_NOISE_BAND, "m_approach": pred["m_approach"]}
 
 
 def constraint_matrix(margins):
