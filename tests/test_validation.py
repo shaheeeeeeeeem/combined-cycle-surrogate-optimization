@@ -330,3 +330,43 @@ def test_surrogate_ga_is_deterministic(fitted_surrogates):
     first, _ = run_ga(SurrogateProblem(fitted_surrogates), [1], pop_size=20, n_gen=10)
     second, _ = run_ga(SurrogateProblem(fitted_surrogates), [1], pop_size=20, n_gen=10)
     assert np.array_equal(first["x"], second["x"])
+
+
+def test_hrsg_limit_sensitivity_results():
+    import pandas as pd
+
+    from src.sensitivity import RESULTS_DIR
+
+    table = pd.read_csv(RESULTS_DIR / "sensitivity_hrsg.csv")
+    assert len(table) == 3
+    assert table["feasible"].all()
+    assert (table["gap [pp]"] <= 0.2).all()
+
+
+def test_pinch_and_approach_parameters_default_to_spec_values(baseline):
+    explicit = direct_model(**BASELINE, dT_pinch=10.0, dT_approach=5.0)
+    assert explicit["eta_cc"] == baseline["eta_cc"]
+    assert explicit["margins"] == baseline["margins"]
+    wider = direct_model(**BASELINE, dT_pinch=15.0)
+    assert wider["m_s"] < baseline["m_s"]
+
+
+def test_knee_of_symmetric_convex_front_is_the_middle_point():
+    from src.pareto import knee_index
+
+    angle = np.linspace(0.0, np.pi / 2, 11)
+    W, eta = np.cos(angle), np.sin(angle)
+    assert knee_index(eta, W) == 5
+
+
+@pytest.mark.parametrize("limit_C", [600, 650, 700])
+def test_pareto_verification_gap(limit_C):
+    import pandas as pd
+
+    from src.pareto import RESULTS_DIR
+
+    front = pd.read_csv(RESULTS_DIR / f"pareto_{limit_C}.csv")
+    verified = front[front["verified"]]
+    assert len(verified) == 5
+    assert (verified["gap_eta_pp"] <= 0.2).all()
+    assert front["knee"].sum() == 1

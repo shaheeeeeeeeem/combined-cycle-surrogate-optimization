@@ -40,9 +40,9 @@ def _violations(margins):
     return [k for k in MARGIN_KEYS if not margins[k] >= -FEASIBILITY_TOL]
 
 
-def _evaluate(rp, TIT, Ps, Ts, Pcond, T_hrsg_max, gt=None):
+def _evaluate(rp, TIT, Ps, Ts, Pcond, T_hrsg_max, gt=None, dT_pinch=DT_PINCH_MIN, dT_approach=DT_APPROACH_MIN):
     gt = gt or gas_turbine(rp, TIT)
-    hr = hrsg(gt, Ps, Ts, Pcond)
+    hr = hrsg(gt, Ps, Ts, Pcond, dT_pinch=dT_pinch)
     cycle = hr["cycle"]
     st_steam = cycle["states"]
     gas = gt["products"]
@@ -62,8 +62,8 @@ def _evaluate(rp, TIT, Ps, Ts, Pcond, T_hrsg_max, gt=None):
         "m_stack": hr["T4c"] - T_STACK_MIN,
         # Pinch is checked over economizer + evaporator; the superheater hot end is
         # governed by the separate 5 K approach constraint.
-        "m_pinch": hr["min_dT_pinch"] - DT_PINCH_MIN,
-        "m_approach": (T4 - Ts) - DT_APPROACH_MIN,
+        "m_pinch": hr["min_dT_pinch"] - dT_pinch,
+        "m_approach": (T4 - Ts) - dT_approach,
         "m_quality": x6 - X6_MIN,
         "m_phi": PHI_MAX - gt["phi"],
     }
@@ -120,27 +120,28 @@ def _failed(reason, rp, TIT, Ts, T_hrsg_max):
             "margins": margins, "feasible": False, "reason": f"error: {reason}"}
 
 
-def direct_model(rp, TIT, Ps, Ts, Pcond, T_hrsg_max=T_HRSG_MAX):
+def direct_model(rp, TIT, Ps, Ts, Pcond, T_hrsg_max=T_HRSG_MAX, dT_pinch=DT_PINCH_MIN, dT_approach=DT_APPROACH_MIN):
     try:
-        return _evaluate(rp, TIT, Ps, Ts, Pcond, T_hrsg_max)
+        return _evaluate(rp, TIT, Ps, Ts, Pcond, T_hrsg_max, dT_pinch=dT_pinch, dT_approach=dT_approach)
     except Exception as exc:
         return _failed(exc, rp, TIT, Ts, T_hrsg_max)
 
 
-def Ts_from_tau(tau, Ps, T4):
+def Ts_from_tau(tau, Ps, T4, dT_approach=DT_APPROACH_MIN):
     T_lo = steam.Tsat(Ps) + SUPERHEAT_MIN
-    T_hi = T4 - DT_APPROACH_MIN
+    T_hi = T4 - dT_approach
     return T_lo + tau * (T_hi - T_lo), T_hi >= T_lo
 
 
-def direct_model_tau(rp, TIT, Ps, tau, Pcond, T_hrsg_max=T_HRSG_MAX):
+def direct_model_tau(rp, TIT, Ps, tau, Pcond, T_hrsg_max=T_HRSG_MAX, dT_pinch=DT_PINCH_MIN,
+                     dT_approach=DT_APPROACH_MIN):
     Ts = np.nan
     try:
         gt = gas_turbine(rp, TIT)
-        Ts, window_ok = Ts_from_tau(tau, Ps, gt["T4"])
+        Ts, window_ok = Ts_from_tau(tau, Ps, gt["T4"], dT_approach)
         if not window_ok:
             Ts = steam.Tsat(Ps) + SUPERHEAT_MIN
-        result = _evaluate(rp, TIT, Ps, Ts, Pcond, T_hrsg_max, gt=gt)
+        result = _evaluate(rp, TIT, Ps, Ts, Pcond, T_hrsg_max, gt=gt, dT_pinch=dT_pinch, dT_approach=dT_approach)
         if not window_ok:
             result["feasible"] = False
             result["reason"] = "no superheat window" + (f"; {result['reason']}" if result["reason"] != "ok" else "")
