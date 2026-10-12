@@ -1,0 +1,12 @@
+Quantity,Hand value,Code output,% difference,Pass/Fail,Note
+T4_gas [K],853.0,852.2156904777089,-0.09194718901419649,Pass,gas side: Cengel air table vs A.6 21/79 mixture
+q_in_gas [kJ/kg],790.58,795.4887816684166,0.6209089109788395,Pass,gas side: Cengel air table vs A.6 21/79 mixture
+w_net_gas [kJ/kg],210.41,210.95066720264393,0.25695889104316855,Pass,gas side: Cengel air table vs A.6 21/79 mixture
+eta_gas [%],26.6,26.518371102632905,-0.30687555401164074,Pass,gas side: Cengel air table vs A.6 21/79 mixture
+h_pump_exit [kJ/kg],144.78,144.77015581200067,-0.006799411520468647,Pass,steam side: Cengel steam tables vs CoolProp
+h_turbine_inlet [kJ/kg],3411.4,3411.39382500373,-0.00018101061939810483,Pass,steam side: Cengel steam tables vs CoolProp
+w_net_steam [kJ/kg],1331.4,1331.401751529042,0.0001315554335240835,Pass,steam side: Cengel steam tables vs CoolProp
+eta_steam [%],40.8,40.75773294872608,-0.10359571390666028,Pass,steam side: Cengel steam tables vs CoolProp
+y [kg steam/kg gas],0.131,0.13213645974703078,0.8675265244509747,Pass,combined: mixed property sources
+w_net_cc [kJ/kg gas],384.8,386.8773811506875,0.5398599663948732,Pass,combined: mixed property sources
+eta_cc [%],48.7,48.63392043559321,-0.13568699056836087,Pass,combined: mixed property sources

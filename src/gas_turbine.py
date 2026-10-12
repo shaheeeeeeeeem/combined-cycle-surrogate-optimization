@@ -42,8 +42,10 @@ def gas_turbine(rp, TIT, m_air=100.0, T1=298.0, P1=1.013e5, P_exh=1.05e5, eta_c=
     return {
         "states": {
             "1": _state(AIR, T1, P1, comp["h_in"]),
+            "2s": _state(AIR, comp["T_out_s"], P2, comp["h_out_s"]),
             "2": _state(AIR, T2, P2, comp["h_out"]),
             "3": _state(products, TIT, P3, turb["h_in"]),
+            "4s": _state(products, turb["T_out_s"], P_exh, turb["h_out_s"]),
             "4": _state(products, turb["T_out"], P_exh, turb["h_out"]),
         },
         "f": comb["f"], "phi": comb["phi"], "m_air": m_air, "m_fuel": m_fuel, "m_gas": m_gas,

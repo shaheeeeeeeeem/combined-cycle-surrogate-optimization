@@ -1,0 +1,9 @@
+Quantity,Hand value,Code output,% difference,Pass/Fail
+Fuel LHV input m_f*LHV [MW],,91.04179805188414,,
+Combustor loss (1 - eta_f)*m_f*LHV [MW],,1.8208359610376805,,
+W_GT_net [MW],,32.52776460995652,,
+W_ST_net [MW],,13.592661256461001,,
+Q_stack = m_gas*h(T4c) - m_air*h_air(T1) [MW],,11.854076238190581,,
+Q_cond [MW],,31.246459986235056,,
+Residual: eta_f*m_f*LHV - sum of outputs [MW],0.0,3.2931566238403317e-12,,
+Closure: eta_f*m_f*LHV vs W_GT + W_ST + Q_stack + Q_cond [MW],89.22096209084646,89.22096209084317,-3.67930065119579e-12,Pass

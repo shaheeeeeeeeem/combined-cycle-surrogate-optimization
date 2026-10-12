@@ -66,6 +66,16 @@ def plot_Ts(cycle, fig_name="phase2_rankine_Ts.png", title=None):
 
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+    draw_Ts(ax, cycle, title=title)
+    fig.tight_layout()
+    FIGURES_DIR.mkdir(exist_ok=True)
+    fig.savefig(FIGURES_DIR / fig_name, dpi=200)
+    plt.close(fig)
+
+
+def draw_Ts(ax, cycle, title=None):
     from CoolProp.CoolProp import PropsSI
 
     st = cycle["states"]
@@ -81,7 +91,6 @@ def plot_Ts(cycle, fig_name="phase2_rankine_Ts.png", title=None):
 
     kJ = 1e-3
     to_C = -273.15
-    fig, ax = plt.subplots(figsize=(7, 5))
     ax.plot(np.concatenate([sf, sg[::-1]]) * kJ, np.concatenate([T_dome, T_dome[::-1]]) + to_C,
             "k-", lw=0.8, label="saturation dome")
 
@@ -106,7 +115,3 @@ def plot_Ts(cycle, fig_name="phase2_rankine_Ts.png", title=None):
     ax.set_xlim(0, 9.5)
     ax.grid(alpha=0.3)
     ax.legend(loc="upper left")
-    fig.tight_layout()
-    FIGURES_DIR.mkdir(exist_ok=True)
-    fig.savefig(FIGURES_DIR / fig_name, dpi=200)
-    plt.close(fig)

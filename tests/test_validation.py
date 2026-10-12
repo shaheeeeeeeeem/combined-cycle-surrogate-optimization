@@ -1,11 +1,15 @@
+import itertools
+import time
+
 import numpy as np
 import pytest
 
 from src.props.gas import AIR, MOLAR_MASS, R_U, SPECIES, T_REF, cp, h, s0
+from src.combined_cycle import BASELINE, MARGIN_KEYS, direct_model, direct_model_tau
 from src.combustor import ETA_F, F_STOICH, LHV_CH4, product_mixture
 from src.gas_turbine import gas_turbine
 from src.rankine import rankine
-from src.validation import CHECK2_INPUTS, check1, check2
+from src.validation import CHECK2_INPUTS, check1, check2, check_textbook_cengel
 
 pytestmark = pytest.mark.filterwarnings("ignore::src.props.gas.A6ExtrapolationWarning")
 
@@ -162,3 +166,81 @@ def test_gt_reference_point_tit1500_rp15(key, expected):
     values = {"f": gt["f"], "phi": gt["phi"], "T4_C": gt["T4"] - 273.15,
               "w_net_kJ": gt["w_net"] / 1e3, "eta_pct": 100 * gt["eta_GT"]}
     assert values[key] == pytest.approx(expected, rel=5e-3)
+
+
+DESIGN_BOUNDS = {"rp": (8.0, 30.0), "TIT": (1200.0, 1500.0), "Ps": (10e5, 60e5), "tau": (0.0, 1.0),
+                 "Pcond": (0.05e5, 0.15e5)}
+
+
+@pytest.fixture(scope="module")
+def baseline():
+    return direct_model(**BASELINE)
+
+
+def test_check3_closure_at_baseline(baseline):
+    assert abs(baseline["energy"]["residual_rel"]) < 1e-6
+
+
+def test_check3_closure_at_random_design_points():
+    rng = np.random.default_rng(42)
+    lo = np.array([b[0] for b in DESIGN_BOUNDS.values()])
+    hi = np.array([b[1] for b in DESIGN_BOUNDS.values()])
+    failed, checked = 0, 0
+    for x in lo + rng.random((30, 5)) * (hi - lo):
+        result = direct_model_tau(*x)
+        if "energy" not in result:
+            failed += 1
+            continue
+        checked += 1
+        assert abs(result["energy"]["residual_rel"]) < 1e-6, result["reason"]
+    print(f"\nCheck-3 random points: {checked} closed, {failed} physics failures")
+    assert checked > 0
+
+
+def test_pinch_verified_over_full_profile(baseline):
+    assert baseline["min_dT"] >= 10.0 - 1e-6
+    assert baseline["min_dT_location"] == "4b"
+
+
+def test_direct_model_never_raises_at_design_corners():
+    start = time.perf_counter()
+    corners = list(itertools.product(*DESIGN_BOUNDS.values()))
+    results = [direct_model_tau(*c) for c in corners]
+    elapsed = (time.perf_counter() - start) / len(corners)
+    print(f"\nmean direct_model_tau wall time: {1e3 * elapsed:.1f} ms per call")
+    for result in results:
+        assert set(MARGIN_KEYS) <= set(result["margins"])
+        assert isinstance(result["feasible"], bool) and isinstance(result["reason"], str)
+
+
+def test_textbook_cengel_within_tolerance():
+    table = check_textbook_cengel(csv_name=None)
+    failed = table[table["Pass/Fail"] != "Pass"]
+    assert failed.empty, failed.to_string()
+
+
+@pytest.mark.parametrize("key, expected, scale", [
+    ("f", 0.01821, 1.0), ("T4", 533.4, "C"), ("m_s", 14.13, 1.0), ("T4c", 135.5, "C"), ("x6", 0.9191, 1.0),
+    ("W_GT_net", 32.53, 1e-6), ("W_ST_net", 13.59, 1e-6), ("eta_cc", 50.66, 100.0),
+    ("work_ratio", 0.418, 1.0), ("eps_HRSG", 0.815, 1.0),
+])
+def test_baseline_sanity_values(baseline, key, expected, scale):
+    value = baseline[key] - 273.15 if scale == "C" else baseline[key] * scale
+    assert value == pytest.approx(expected, rel=5e-3)
+
+
+def test_baseline_is_feasible(baseline):
+    assert baseline["feasible"], baseline["reason"]
+
+
+def test_hrsg_limit_only_moves_its_own_margin(baseline):
+    relaxed = direct_model(**BASELINE, T_hrsg_max=700.0 + 273.15)
+    tight = direct_model(**BASELINE, T_hrsg_max=500.0 + 273.15)
+    for other in (relaxed, tight):
+        assert other["eta_cc"] == baseline["eta_cc"]
+        for k in MARGIN_KEYS:
+            if k != "m_hrsg_inlet":
+                assert other["margins"][k] == baseline["margins"][k]
+    assert relaxed["margins"]["m_hrsg_inlet"] - baseline["margins"]["m_hrsg_inlet"] == pytest.approx(50.0)
+    assert relaxed["feasible"] and not tight["feasible"]
+    assert tight["reason"] == "m_hrsg_inlet"
