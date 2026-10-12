@@ -1,0 +1,23 @@
+quantity,value,unit,note
+rp,8,-,gas-turbine pressure ratio
+T1,300,K,compressor inlet (air-standard)
+T3,1300,K,turbine inlet
+eta_c,0.80,-,compressor isentropic efficiency
+eta_t,0.85,-,gas turbine isentropic efficiency
+P_steam_high,7000,kPa,ideal Rankine (pump and turbine isentropic)
+P_steam_low,5,kPa,condenser
+T_steam_max,500,C,steam heated to 500 C in HRSG
+T_gas_exit,450,K,exhaust leaves heat exchanger at 450 K (fixed; not a pinch closure)
+h4_gas,880.36,kJ/kg,gas turbine exhaust enthalpy (Cengel air table)
+T4_gas,853,K,gas turbine exhaust temperature
+q_in_gas,790.58,kJ/kg,heat input per kg gas
+w_net_gas,210.41,kJ/kg,gas cycle net work
+eta_gas,26.6,%,gas cycle thermal efficiency
+h5_gas,451.80,kJ/kg,gas enthalpy at 450 K (Cengel air table)
+h_pump_exit,144.78,kJ/kg,steam cycle state 2 (T2 = 33 C)
+h_turbine_inlet,3411.4,kJ/kg,steam cycle state 3 (500 C)
+w_net_steam,1331.4,kJ/kg,steam cycle net work per kg steam
+eta_steam,40.8,%,steam cycle thermal efficiency
+y,0.131,kg steam/kg gas,mass flow ratio from HX energy balance
+w_net_cc,384.8,kJ/kg gas,combined net work per kg gas
+eta_cc,48.7,%,combined-cycle thermal efficiency (w_net / q_in)

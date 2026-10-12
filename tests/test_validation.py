@@ -2,6 +2,8 @@ import numpy as np
 import pytest
 
 from src.props.gas import AIR, MOLAR_MASS, R_U, SPECIES, T_REF, cp, h, s0
+from src.combustor import ETA_F, F_STOICH, LHV_CH4, product_mixture
+from src.gas_turbine import gas_turbine
 from src.rankine import rankine
 from src.validation import CHECK2_INPUTS, check1, check2
 
@@ -111,3 +113,52 @@ def test_rankine_higher_superheat_raises_quality_and_efficiency():
     high = rankine(Ps=30e5, Ts=773.15, Pcond=7.5e3)
     assert high["x6"] > low["x6"]
     assert high["eta"] > low["eta"]
+
+
+def test_f_stoich():
+    assert F_STOICH == pytest.approx(0.05839, rel=1e-3)
+
+
+def test_combustor_energy_closure():
+    gt = gas_turbine(rp=15.0, TIT=1500.0)
+    st = gt["states"]
+    supplied = gt["m_fuel"] * LHV_CH4 * ETA_F + gt["W_c"]
+    absorbed = gt["m_gas"] * st["3"]["h"] - gt["m_air"] * st["1"]["h"]
+    assert supplied == pytest.approx(absorbed, rel=1e-9)
+
+
+@pytest.mark.parametrize("f", [0.0, 0.02, F_STOICH])
+def test_product_mixture_composition(f):
+    products = product_mixture(f)
+    assert sum(products.mass_fractions.values()) == pytest.approx(1.0, abs=1e-12)
+    assert products.mass_fractions["O2"] >= -1e-15
+
+
+def test_product_mixture_rejects_rich_mixture():
+    with pytest.raises(ValueError):
+        product_mixture(1.01 * F_STOICH)
+
+
+def test_fuel_air_ratio_increases_with_TIT():
+    f = [gas_turbine(rp=15.0, TIT=T)["f"] for T in (1200.0, 1300.0, 1400.0, 1500.0)]
+    assert np.all(np.diff(f) > 0)
+
+
+def test_equivalence_ratio_lean_over_design_range():
+    phi = [gas_turbine(rp, TIT)["phi"] for rp in (8.0, 15.0, 30.0) for TIT in (1200.0, 1500.0)]
+    assert max(phi) < 1.0
+
+
+def test_gt_efficiency_has_interior_maximum_in_rp():
+    eta = [gas_turbine(rp, 1200.0)["eta_GT"] for rp in (6.0, 19.0, 45.0)]
+    assert eta[1] > eta[0] and eta[1] > eta[2]
+
+
+@pytest.mark.parametrize("key, expected", [
+    ("f", 0.0210), ("phi", 0.359), ("T4_C", 595.0), ("w_net_kJ", 382.0), ("eta_pct", 36.4),
+])
+def test_gt_reference_point_tit1500_rp15(key, expected):
+    gt = gas_turbine(rp=15.0, TIT=1500.0)
+    values = {"f": gt["f"], "phi": gt["phi"], "T4_C": gt["T4"] - 273.15,
+              "w_net_kJ": gt["w_net"] / 1e3, "eta_pct": 100 * gt["eta_GT"]}
+    assert values[key] == pytest.approx(expected, rel=5e-3)
