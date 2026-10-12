@@ -2,7 +2,8 @@ import numpy as np
 import pytest
 
 from src.props.gas import AIR, MOLAR_MASS, R_U, SPECIES, T_REF, cp, h, s0
-from src.validation import check1
+from src.rankine import rankine
+from src.validation import CHECK2_INPUTS, check1, check2
 
 pytestmark = pytest.mark.filterwarnings("ignore::src.props.gas.A6ExtrapolationWarning")
 
@@ -75,3 +76,38 @@ def test_check1_within_gas_tolerance():
     table = check1(csv_name=None)
     failed = table[table["Pass/Fail"] != "Pass"]
     assert failed.empty, failed.to_string()
+
+
+def test_check2_within_steam_tolerance():
+    table = check2(csv_name=None)
+    failed = table[table["Pass/Fail"] != "Pass"]
+    assert failed.empty, failed.to_string()
+
+
+def test_rankine_energy_closure():
+    cycle = rankine(**CHECK2_INPUTS)
+    assert cycle["q_in"] - cycle["q_out"] - cycle["w_net"] == pytest.approx(0.0, abs=1e-6)
+
+
+def test_rankine_ideal_components_are_isentropic():
+    inputs = {**CHECK2_INPUTS, "eta_st": 1.0, "eta_pump": 1.0}
+    st = rankine(**inputs)["states"]
+    assert st["6"]["s"] == pytest.approx(st["5"]["s"], rel=1e-6)
+    assert st["8"]["s"] == pytest.approx(st["7"]["s"], rel=1e-6)
+
+
+def test_rankine_rejects_Ts_at_or_below_saturation():
+    with pytest.raises(ValueError):
+        rankine(Ps=30e5, Ts=450.0, Pcond=7.5e3)
+
+
+def test_rankine_rejects_Pcond_at_or_above_Ps():
+    with pytest.raises(ValueError):
+        rankine(Ps=30e5, Ts=723.15, Pcond=30e5)
+
+
+def test_rankine_higher_superheat_raises_quality_and_efficiency():
+    low = rankine(Ps=30e5, Ts=673.15, Pcond=7.5e3)
+    high = rankine(Ps=30e5, Ts=773.15, Pcond=7.5e3)
+    assert high["x6"] > low["x6"]
+    assert high["eta"] > low["eta"]

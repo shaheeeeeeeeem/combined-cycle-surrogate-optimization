@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 
 from src.props.gas import AIR, T_REF, T_VALID, GasMixture
+from src.rankine import plot_Ts, rankine
 
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS_DIR = ROOT / "results"
@@ -17,6 +18,7 @@ FIGURES_DIR = ROOT / "figures"
 TABLE_A71 = ROOT / "textbook_tables" / "BS7e_TableA7.1_air_ideal_gas.csv"
 
 TOL_GAS_PCT = 0.5
+TOL_STEAM_PCT = 0.1
 
 CHECK1_INPUTS = {"T1": 300.0, "P1": 100e3, "rp": 15.0, "T3": 1400.0, "eta_c": 0.86, "eta_t": 0.89}
 CHECK1_HAND = {
@@ -29,6 +31,24 @@ CHECK1_HAND = {
     "eta_th [%]": 37.05,
 }
 CHECK1_HAND_H = {"h1 [kJ/kg]": 300.47, "h3 [kJ/kg]": 1515.27}
+
+CHECK2_INPUTS = {"Ps": 30e5, "Ts": 450.0 + 273.15, "Pcond": 7.5e3, "eta_st": 0.85, "eta_pump": 0.80}
+CHECK2_HAND = {
+    "h5 [kJ/kg]": 3344.00,
+    "s5 [kJ/kg·K]": 7.0833,
+    "h6s [kJ/kg]": 2208.4,
+    "x6s [-]": 0.848,
+    "h6 [kJ/kg]": 2378.8,
+    "x6 [-]": 0.919,
+    "h7 [kJ/kg]": 168.77,
+    "s7 [kJ/kg·K]": 0.5763,
+    "h8 [kJ/kg]": 172.54,
+    "w_st [kJ/kg]": 965.2,
+    "w_pump [kJ/kg]": 3.77,
+    "w_net [kJ/kg]": 961.4,
+    "q_H [kJ/kg]": 3171.5,
+    "eta_Rankine [%]": 30.3,
+}
 
 # Gas constant for the A.6 "Air" row, as used in textbook_tables/README.md.
 R_AIR_ROW = 287.0
@@ -94,6 +114,32 @@ def check1_air_row():
     return check1(gas=AIR_ROW, csv_name="validation_check1_A6_air_row.csv")
 
 
+def check2(csv_name="validation_check2.csv"):
+    cycle = rankine(**CHECK2_INPUTS)
+    st = cycle["states"]
+    code = {
+        "h5 [kJ/kg]": st["5"]["h"] / 1e3,
+        "s5 [kJ/kg·K]": st["5"]["s"] / 1e3,
+        "h6s [kJ/kg]": st["6s"]["h"] / 1e3,
+        "x6s [-]": st["6s"]["x"],
+        "h6 [kJ/kg]": st["6"]["h"] / 1e3,
+        "x6 [-]": st["6"]["x"],
+        "h7 [kJ/kg]": st["7"]["h"] / 1e3,
+        "s7 [kJ/kg·K]": st["7"]["s"] / 1e3,
+        "h8 [kJ/kg]": st["8"]["h"] / 1e3,
+        "w_st [kJ/kg]": cycle["w_st"] / 1e3,
+        "w_pump [kJ/kg]": cycle["w_pump"] / 1e3,
+        "w_net [kJ/kg]": cycle["w_net"] / 1e3,
+        "q_H [kJ/kg]": cycle["q_in"] / 1e3,
+        "eta_Rankine [%]": 100.0 * cycle["eta"],
+    }
+    table = comparison_table([(q, CHECK2_HAND[q], code[q]) for q in CHECK2_HAND], tol_pct=TOL_STEAM_PCT)
+    if csv_name:
+        RESULTS_DIR.mkdir(exist_ok=True)
+        table.to_csv(RESULTS_DIR / csv_name, index=False)
+    return table
+
+
 def a6_extrapolation_study(T_min=300.0, T_max=1600.0, fig_name="phase1_A6_vs_A71.png"):
     table = load_table_a71()
     table = table[(table["T_K"] >= T_min) & (table["T_K"] <= T_max)].reset_index(drop=True)
@@ -142,3 +188,6 @@ if __name__ == "__main__":
     print(check1_air_row().to_string(index=False))
     print("\nA.6 mixture vs Table A.7.1 (reference-shifted)")
     print(a6_extrapolation_study()[1].to_string(index=False))
+    print("\nCheck-2: Rankine cycle, CoolProp vs B&S steam tables")
+    print(check2().to_string(index=False))
+    plot_Ts(rankine(**CHECK2_INPUTS), title="Check-2 Rankine cycle (30 bar, 450 °C, 7.5 kPa)")
