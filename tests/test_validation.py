@@ -264,3 +264,34 @@ def test_doe_table_complete():
     assert df[UNIT_COLUMNS].min().min() >= 0.0 and df[UNIT_COLUMNS].max().max() <= 1.0
     assert set(MARGIN_KEYS) <= set(df.columns)
     assert df["feasible"].any() and (~df["feasible"]).any()
+
+
+@pytest.fixture(scope="module")
+def fitted_surrogates():
+    import pandas as pd
+
+    from src.surrogates import RESULTS_DIR, fit_surrogates, load_selection
+
+    selection, ann_params = load_selection()
+    return fit_surrogates(pd.read_csv(RESULTS_DIR / "doe.csv"), selection, ann_params)
+
+
+def test_surrogate_metrics_table():
+    import pandas as pd
+
+    from src.surrogates import RESULTS_DIR, TARGETS
+
+    metrics = pd.read_csv(RESULTS_DIR / "surrogate_metrics.csv")
+    assert set(metrics["target"]) == set(TARGETS)
+    assert (metrics.groupby("target")["selected"].sum() == 1).all()
+    eta = metrics[(metrics["target"] == "eta_cc") & metrics["selected"]].iloc[0]
+    assert eta["test_R2"] > 0.99
+
+
+def test_fit_surrogates_returns_callable_models(fitted_surrogates):
+    from src.surrogates import TARGETS
+
+    U = np.random.default_rng(42).random((7, 5))
+    pred = fitted_surrogates(U)
+    assert set(pred) == set(TARGETS)
+    assert all(np.asarray(v).shape == (7,) for v in pred.values())

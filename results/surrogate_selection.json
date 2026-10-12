@@ -1,0 +1,79 @@
+{
+  "eta_cc": {
+    "model": "ANN",
+    "ann_params": {
+      "regressor__activation": "tanh",
+      "regressor__alpha": 0.0001,
+      "regressor__hidden_layer_sizes": [
+        64,
+        64
+      ]
+    }
+  },
+  "W_net_MW": {
+    "model": "ANN",
+    "ann_params": {
+      "regressor__activation": "tanh",
+      "regressor__alpha": 0.01,
+      "regressor__hidden_layer_sizes": [
+        32,
+        32
+      ]
+    }
+  },
+  "T4": {
+    "model": "ANN",
+    "ann_params": {
+      "regressor__activation": "tanh",
+      "regressor__alpha": 0.01,
+      "regressor__hidden_layer_sizes": [
+        16,
+        16
+      ]
+    }
+  },
+  "m_quality": {
+    "model": "ANN",
+    "ann_params": {
+      "regressor__activation": "tanh",
+      "regressor__alpha": 0.01,
+      "regressor__hidden_layer_sizes": [
+        64,
+        64
+      ]
+    }
+  },
+  "m_stack": {
+    "model": "ANN",
+    "ann_params": {
+      "regressor__activation": "tanh",
+      "regressor__alpha": 0.01,
+      "regressor__hidden_layer_sizes": [
+        32,
+        32
+      ]
+    }
+  },
+  "m_pinch": {
+    "model": "ANN",
+    "ann_params": {
+      "regressor__activation": "relu",
+      "regressor__alpha": 0.0001,
+      "regressor__hidden_layer_sizes": [
+        16,
+        16
+      ]
+    }
+  },
+  "m_approach": {
+    "model": "ANN",
+    "ann_params": {
+      "regressor__activation": "tanh",
+      "regressor__alpha": 0.01,
+      "regressor__hidden_layer_sizes": [
+        16,
+        16
+      ]
+    }
+  }
+}
