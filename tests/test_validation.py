@@ -295,3 +295,38 @@ def test_fit_surrogates_returns_callable_models(fitted_surrogates):
     pred = fitted_surrogates(U)
     assert set(pred) == set(TARGETS)
     assert all(np.asarray(v).shape == (7,) for v in pred.values())
+
+
+def _optimum_value(table, quantity):
+    return float(table.loc[table["Quantity"] == quantity, "Value"].iloc[0])
+
+
+def test_optimum_is_direct_model_feasible():
+    import pandas as pd
+
+    from src.optimize import RESULTS_DIR
+
+    table = pd.read_csv(RESULTS_DIR / "optimum.csv")
+    result = direct_model_tau(_optimum_value(table, "rp [-]"), _optimum_value(table, "TIT [K]"),
+                              _optimum_value(table, "Ps [bar]") * 1e5, _optimum_value(table, "tau [-]"),
+                              _optimum_value(table, "Pcond [bar]") * 1e5)
+    assert result["feasible"], result["reason"]
+    assert 100 * result["eta_cc"] == pytest.approx(_optimum_value(table, "eta_cc [%]"), abs=1e-9)
+
+
+def test_final_surrogate_gap_or_refinement_budget():
+    import pandas as pd
+
+    from src.optimize import GAP_TARGET_PP, MAX_REFINEMENTS, RESULTS_DIR
+
+    final = pd.read_csv(RESULTS_DIR / "optimization_history.csv").iloc[-1]
+    assert final["gap_pp"] <= GAP_TARGET_PP or final["loop"] == MAX_REFINEMENTS
+    assert final["feasible"]
+
+
+def test_surrogate_ga_is_deterministic(fitted_surrogates):
+    from src.optimize import SurrogateProblem, run_ga
+
+    first, _ = run_ga(SurrogateProblem(fitted_surrogates), [1], pop_size=20, n_gen=10)
+    second, _ = run_ga(SurrogateProblem(fitted_surrogates), [1], pop_size=20, n_gen=10)
+    assert np.array_equal(first["x"], second["x"])
