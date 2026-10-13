@@ -162,6 +162,7 @@ The direct-model GA reference finds the same point (η_cc 53.935 %, r_p 16.05, P
 
 ```powershell
 python -m venv .venv
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass   # lets this window run the activation script
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python run_all.py            # everything, including the ~3 min direct-model reference GA
